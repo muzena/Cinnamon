@@ -896,7 +896,7 @@ class SystemButton extends PopupMenu.PopupBaseMenuItem {
         this.name = name;
         this.desc = desc;
 
-        let icon_size = 16 / global.ui_scale;
+        let icon_size = 16;
         this.actor.add_style_class_name('menu-favorites-button');
 
         this.icon = new St.Icon({icon_name: icon, icon_size: icon_size, icon_type: St.IconType.SYMBOLIC});
@@ -1395,7 +1395,13 @@ class CinnamonMenuApplet extends Applet.TextIconApplet {
                         this.set_applet_icon_name(this.menuIcon);
                 }
             } else {
-                this.set_applet_icon_name(global.settings.get_string('app-menu-icon-name'));
+                let icon_name = global.settings.get_string('app-menu-icon-name');
+                if (icon_name.search("-symbolic") != -1) {
+                    this.set_applet_icon_symbolic_name(icon_name);
+                }
+                else {
+                    this.set_applet_icon_name(icon_name);
+                }
             }
         } catch(e) {
             global.logWarning("Could not load icon file \""+this.menuIcon+"\" for menu button");
@@ -2074,7 +2080,7 @@ class CinnamonMenuApplet extends Applet.TextIconApplet {
             return;
         }
 
-        this.vectorBox = new St.Polygon({ debug: false, width: vi.w, height: vi.h,
+        this.vectorBox = new St.Polygon({ debug: false, width: vi.w -1, height: vi.h,
                                           ulc_x: vi.mx, ulc_y: vi.my,
                                           llc_x: vi.mx, llc_y: vi.my,
                                           urc_x: vi.w, urc_y: 0,
@@ -2840,7 +2846,7 @@ class CinnamonMenuApplet extends Applet.TextIconApplet {
 
         let rightPane = new St.BoxLayout({ vertical: true });
 
-        let topRow = new St.BoxLayout();
+        let topRow = new St.BoxLayout({style_class: 'menu-top-box'});
 
         this.searchBox = new St.BoxLayout({ style_class: 'menu-search-box' });
 
@@ -2910,7 +2916,7 @@ class CinnamonMenuApplet extends Applet.TextIconApplet {
             y_fill: false
         });
 
-        this.systemButtonsBox = new St.BoxLayout();
+        this.systemButtonsBox = new St.BoxLayout({style_class: 'menu-systembuttons-box'});
         topRow.add(this.searchBox,  {x_fill: true, x_align: St.Align.START, y_align: St.Align.MIDDLE, y_fill: false, expand: true});
         topRow.add(this.systemButtonsBox, { x_align: St.Align.START, x_fill: true, expand: false });
 
@@ -3268,26 +3274,22 @@ class CinnamonMenuApplet extends Applet.TextIconApplet {
         if (pattern){
             res = [];
             let regexpPattern = new RegExp("\\b"+pattern);
-            let foundByName = false;
             for (let i in this._applicationsButtons) {
                 let app = this._applicationsButtons[i].app;
                 let latinisedLowerName = Util.latinise(app.get_name().toLowerCase());
                 if (latinisedLowerName.match(regexpPattern) !== null) {
                     res.push(app.get_id());
-                    foundByName = true;
                     if (!exactMatch && latinisedLowerName === pattern)
                         exactMatch = app.get_id();
                 }
             }
-            if (!foundByName) {
-                for (let i in this._applicationsButtons) {
-                    let app = this._applicationsButtons[i].app;
-                    if (Util.latinise(app.get_name().toLowerCase()).indexOf(pattern)!==-1 ||
-                        (app.get_keywords() && Util.latinise(app.get_keywords().toLowerCase()).indexOf(pattern)!==-1) ||
-                        (app.get_description() && Util.latinise(app.get_description().toLowerCase()).indexOf(pattern)!==-1) ||
-                        (app.get_id() && Util.latinise(app.get_id().slice(0, -8).toLowerCase()).indexOf(pattern)!==-1))
-                        res.push(app.get_id());
-                }
+            for (let i in this._applicationsButtons) {
+                let app = this._applicationsButtons[i].app;
+                if (Util.latinise(app.get_name().toLowerCase()).indexOf(pattern)!==-1 ||
+                    (app.get_keywords() && Util.latinise(app.get_keywords().toLowerCase()).indexOf(pattern)!==-1) ||
+                    (app.get_description() && Util.latinise(app.get_description().toLowerCase()).indexOf(pattern)!==-1) ||
+                    (app.get_id() && Util.latinise(app.get_id().slice(0, -8).toLowerCase()).indexOf(pattern)!==-1))
+                    res.push(app.get_id());
             }
         } else res = applist;
         return [res, exactMatch];

@@ -29,22 +29,39 @@ class PanelSettingsPage(SettingsPage):
         if position in ("top", "bottom"):
             dimension_text = _("Panel height:")
             scale_dimension_text = _("Allow Cinnamon to scale panel text and icons according to the panel height")
+            left_zone_icon_size_text = _("Left panel zone icon size")
+            right_zone_icon_size_text = _("Right panel zone icon size")
         else:
             dimension_text = _("Panel width:")
             scale_dimension_text = _("Allow Cinnamon to scale panel text and icons according to the panel width")
+            left_zone_icon_size_text = _("Top panel zone icon size")
+            right_zone_icon_size_text = _("Bottom panel zone icon size")
 
         def can_show(vlist, possible):
             for item in vlist:
                 if item.split(":")[0] == panel_id:
                     return item.split(":")[1] != "false"
 
-        section = SettingsBox(_("Settings"))
+        section = SettingsBox(_("Panel Visibility"))
         self.add(section)
 
         size_group = Gtk.SizeGroup.new(Gtk.SizeGroupMode.HORIZONTAL)
 
         options = [["true", _("Auto hide panel")], ["false", _("Always show panel")], ["intel", _("Intelligently hide panel")]]
         widget = PanelComboBox(_("Auto-hide panel"), "org.cinnamon", "panels-autohide", self.panel_id, options, size_group=size_group)
+        section.add_row(widget)
+
+        widget = PanelSpinButton(_("Show delay"), "org.cinnamon", "panels-show-delay", self.panel_id, _("milliseconds"), 0, 2000, 50, 200)#, dep_key="org.cinnamon/panels-autohide")
+        section.add_reveal_row(widget, "org.cinnamon", "panels-autohide", check_func=can_show)
+
+        widget = PanelSpinButton(_("Hide delay"), "org.cinnamon", "panels-hide-delay", self.panel_id, _("milliseconds"), 0, 2000, 50, 200)#, dep_key="org.cinnamon/panels-autohide")
+        section.add_reveal_row(widget, "org.cinnamon", "panels-autohide", check_func=can_show)
+
+        section = SettingsBox(_("Customize"))
+        self.add(section)
+
+        widget = PanelRange(dimension_text, "org.cinnamon", "panels-height", self.panel_id, _("Smaller"), _("Larger"), mini=20, maxi=60, show_value=True)
+        widget.set_rounding(0)
         section.add_row(widget)
 
         options = [
@@ -54,26 +71,16 @@ class PanelSettingsPage(SettingsPage):
             [22, '22px'],
             [24, '24px'],
             [32, '32px'],
-            [48, '48px'],
-            [64, '64px']
+            [48, '48px']
         ]
-        widget = PanelJSONComboBox(_("Left panel zone icon size"), "org.cinnamon", "panel-zone-icon-sizes", self.panel_id, 'left', options, size_group=size_group)
+
+        widget = PanelJSONComboBox(left_zone_icon_size_text, "org.cinnamon", "panel-zone-icon-sizes", self.panel_id, 'left', options, size_group=size_group)
         section.add_row(widget)
 
         widget = PanelJSONComboBox(_("Center panel zone icon size"), "org.cinnamon", "panel-zone-icon-sizes", self.panel_id, 'center', options, size_group=size_group)
         section.add_row(widget)
 
-        widget = PanelJSONComboBox(_("Right panel zone icon size"), "org.cinnamon", "panel-zone-icon-sizes", self.panel_id, 'right', options, size_group=size_group)
-        section.add_row(widget)
-
-        widget = PanelSpinButton(_("Show delay"), "org.cinnamon", "panels-show-delay", self.panel_id, _("milliseconds"), 0, 2000, 50, 200)#, dep_key="org.cinnamon/panels-autohide")
-        section.add_reveal_row(widget, "org.cinnamon", "panels-autohide", check_func=can_show)
-
-        widget = PanelSpinButton(_("Hide delay"), "org.cinnamon", "panels-hide-delay", self.panel_id, _("milliseconds"), 0, 2000, 50, 200)#, dep_key="org.cinnamon/panels-autohide")
-        section.add_reveal_row(widget, "org.cinnamon", "panels-autohide", check_func=can_show)
-
-        widget = PanelRange(dimension_text, "org.cinnamon", "panels-height", self.panel_id, _("Smaller"), _("Larger"), mini=20, maxi=60, show_value=True)
-        widget.set_rounding(0)
+        widget = PanelJSONComboBox(right_zone_icon_size_text, "org.cinnamon", "panel-zone-icon-sizes", self.panel_id, 'right', options, size_group=size_group)
         section.add_row(widget)
 
         self.show_all()
